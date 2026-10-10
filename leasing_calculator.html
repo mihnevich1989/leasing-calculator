@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Калькулятор лизинга</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div class="wrap">
+  <h1>Калькулятор лизинга</h1>
+  <p class="sub">Модель восстановлена по графику: аннуитет, ставка на сумму без НДС, НДС начисляется только на стоимость, разовая комиссия входит в первый платёж.</p>
+
+  <div class="card">
+    <h2>Параметры</h2>
+    <div class="grid">
+      <div>
+        <label for="price">Стоимость с НДС, BYN</label>
+        <input id="price" type="number" step="0.01" min="0" value="18500">
+      </div>
+      <div>
+        <label for="advance">Аванс, BYN</label>
+        <input id="advance" type="number" step="0.01" min="0" value="4000">
+        <div class="hint" id="advancePct"></div>
+      </div>
+      <div>
+        <label for="term">Срок, мес</label>
+        <input id="term" type="number" step="1" min="1" max="120" value="48">
+      </div>
+      <div>
+        <label for="rate">Ставка вознаграждения, % годовых</label>
+        <input id="rate" type="number" step="0.01" min="0" value="24">
+        <div class="hint">Начисляется на остаток без НДС, 1/12 в месяц</div>
+      </div>
+      <div>
+        <label for="vat">НДС, %</label>
+        <input id="vat" type="number" step="0.01" min="0" value="20">
+      </div>
+      <div>
+        <label for="feePct">Разовая комиссия, % от стоимости</label>
+        <input id="feePct" type="number" step="0.01" min="0" value="0.4">
+        <div class="hint" id="feeHint"></div>
+      </div>
+      <div>
+        <label for="kaskoPct">КАСКО, % от стоимости в год</label>
+        <input id="kaskoPct" type="number" step="0.01" min="0" value="0">
+        <div class="hint" id="kaskoHint"></div>
+      </div>
+      <div>
+        <label for="startDate">Дата договора (аванс)</label>
+        <input id="startDate" type="date" value="2026-08-24">
+      </div>
+      <div>
+        <label for="payDay">День ежемесячного платежа</label>
+        <input id="payDay" type="number" step="1" min="1" max="28" value="5">
+      </div>
+      <div>
+        <label class="check"><input id="roundPay" type="checkbox" checked> Округлять платёж до целых BYN</label>
+      </div>
+    </div>
+    <div class="btns">
+      <button class="primary" id="addScenario">Добавить в сравнение</button>
+      <button id="presetAl">Пример (аванс 4 500)</button>
+    </div>
+    <div class="error" id="err"></div>
+  </div>
+
+  <div class="card">
+    <h2>Итог</h2>
+    <div class="kpis">
+      <div class="kpi"><div class="v" id="kMonthly">—</div><div class="l" id="kMonthlyL">Ежемесячный платёж</div></div>
+      <div class="kpi"><div class="v" id="kFirst">—</div><div class="l">Первый платёж (с комиссией)</div></div>
+      <div class="kpi"><div class="v" id="kTotal">—</div><div class="l">Всего заплатите (с авансом)</div></div>
+      <div class="kpi"><div class="v" id="kOver">—</div><div class="l">Переплата (с КАСКО)</div></div>
+      <div class="kpi"><div class="v" id="kKasko">—</div><div class="l">КАСКО за весь срок</div></div>
+      <div class="kpi"><div class="v" id="kIrr">—</div><div class="l">Реальная ставка, % годовых (XIRR)</div></div>
+    </div>
+    <p class="note" id="explain"></p>
+  </div>
+
+  <div class="card">
+    <h2>Сравнение вариантов</h2>
+    <p class="note" style="margin-top:0">Строки — аванс, столбцы — срок. В ячейке: ежемесячный платёж (с КАСКО) и переплата под ним. Зелёным выделена минимальная переплата среди вариантов, у которых платёж не больше лимита.</p>
+    <div class="grid" style="margin-bottom:12px">
+      <div>
+        <label for="mAdv">Варианты аванса, через запятую</label>
+        <input id="mAdv" type="text" value="2000, 3000, 4000, 4500, 6000, 8000">
+      </div>
+      <div>
+        <label for="mTerm">Варианты срока, мес</label>
+        <input id="mTerm" type="text" value="12, 24, 36, 48, 60">
+      </div>
+      <div>
+        <label for="mLimit">Лимит платежа в месяц, BYN</label>
+        <input id="mLimit" type="number" step="1" min="0" value="500">
+      </div>
+    </div>
+    <div class="scroll"><table class="matrix" id="matrix"></table></div>
+  </div>
+
+  <div class="card">
+    <h2>Сохранённые варианты</h2>
+    <div class="scroll"><table id="saved"></table></div>
+    <p class="note" id="savedEmpty">Пока пусто. Настройте параметры и нажмите «Добавить в сравнение».</p>
+  </div>
+
+  <div class="card">
+    <details open>
+      <summary>График платежей</summary>
+      <p class="note">«Выкуп после платежа» — остаток стоимости с НДС, если досрочно выкупить после этого платежа (оценка без возможных штрафов; по условиям выкуп возможен через 12 месяцев).</p>
+      <div class="scroll table-box"><table id="schedule"></table></div>
+    </details>
+  </div>
+</div>
+<script src="js/format.js"></script>
+<script src="js/calc.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/render.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
